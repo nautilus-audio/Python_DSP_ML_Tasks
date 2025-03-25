@@ -1,6 +1,6 @@
 .DS_Store
 pyvenv.cfg
 /Audio/Output
-/Code/Explain
 /Maybe
-mlsc.py
+/Code/Explain
+/Code/mlsc.py
