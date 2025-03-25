@@ -76,7 +76,3 @@ if __name__ == "__main__":
 
     # Save the remapped audio
     save_bwf_file(output_file, audio_7_1_4, sr)
-
-    # Check if the audio data is identical per channel
-    for i in range(12):
-        print(np.allclose(audio_7_1_4[i], reference[i]))
