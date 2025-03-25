@@ -79,8 +79,8 @@ def calculate_loudness(file_path):
 def find_gain_adjustment(master_path, stems_dir):
     """Determine gain adjustments for stems to match the master track loudness."""
     master_lufs, master_rms, _ = calculate_loudness(master_path)
-    adjustments = {}
-    
+    gains = {}
+
     for file in os.listdir(stems_dir):
         if file.endswith(".wav"):
             stem_path = os.path.join(stems_dir, file)
@@ -91,18 +91,25 @@ def find_gain_adjustment(master_path, stems_dir):
             rms_adjustment = 20 * np.log10(master_rms / (stem_rms + 1e-6))  # Avoid division by zero
             gain_adjustment = (lufs_adjustment * 0.7) + (rms_adjustment * 0.3)
 
+            # Ensure reductions are explicitly negative
+            if gain_adjustment > 0:
+                gain_adjustment = abs(gain_adjustment)  # Boost (positive)
+            else:
+                gain_adjustment = -abs(gain_adjustment)  # Reduction (negative)
+
             # Cap excessive gain changes
             gain_adjustment = np.clip(gain_adjustment, -6, 3)  # Max boost +3 dB, max cut -6 dB
 
-            adjustments[file] = (gain_adjustment, sr)
+            gains[file] = (gain_adjustment, sr)
 
-    return adjustments
+    return gains
+
 
 def apply_gain_adjustment(data, output_path, gain_db, sr):
     """Apply a gain adjustment to an audio file and save the result."""
     y = data
     gain_factor = 10 ** (gain_db / 20)  # Convert dB to linear scale
-    y_adjusted = np.clip((y * gain_factor) * .707, -1, 1)  # Prevent clipping
+    y_adjusted = np.clip((y * gain_factor) * .707, -1, 1)  # Prevent clipping, gain stage with -3 dB
     sf.write(output_path, y_adjusted, sr)
     return y_adjusted
 
