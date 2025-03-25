@@ -1,6 +1,6 @@
 """
 1. How many lines of code would you need to do a linear-phase low-pass filter?
-5 lines of code. 
+7 lines of code. 3 lines for the filter design and 4 lines for the filtering operation and arguments.
 
 2. What do “poles” mean in relation to a filter, like the one you built in (1)?
 Poles are the roots of the denominator polynomial of the transfer function of a filter. 

@@ -3,7 +3,7 @@ import numpy as np
 
 # Define the 7.1.4 channel layout order (ITU standard)
 CHANNEL_LAYOUT_7_1_4 = [
-    "L", "R", "C", "LFE", "Ls", "Rs", "Lb", "Rb",  # 7.1 base
+    "L", "R", "C", "LFE", "Ls", "Rs", "Lr", "Rr",  # 7.1 base
     "Ltf", "Rtf", "Ltr", "Rtr"                    # 4 height channels
 ]
 
@@ -19,8 +19,8 @@ def load_bwf_file(file_path):
 def project_to_7_1_4(audio_22ch):
     """Maps the 22-channel audio onto a 7.1.4 speaker layout."""
     
-    if audio_22ch.shape[1] < 22:
-        raise ValueError("Input audio must have at least 22 channels.")
+    if audio_22ch.shape[1] < 15:
+        raise ValueError("Input audio must have at least 15 channels.")
     
     num_samples = audio_22ch.shape[0]
     
@@ -34,14 +34,14 @@ def project_to_7_1_4(audio_22ch):
     audio_7_1_4[:, 3] = audio_22ch[:, 3]   # LFE -> Channel 4
     audio_7_1_4[:, 4] = audio_22ch[:, 4]   # Ls -> Channel 5
     audio_7_1_4[:, 5] = audio_22ch[:, 5]   # Rs -> Channel 6
-    audio_7_1_4[:, 6] = audio_22ch[:, 6]   # Lb -> Channel 7
-    audio_7_1_4[:, 7] = audio_22ch[:, 7]   # Rb -> Channel 8
+    audio_7_1_4[:, 6] = audio_22ch[:, 6]   # Lr -> Channel 7
+    audio_7_1_4[:, 7] = audio_22ch[:, 7]   # Rr -> Channel 8
 
     # Height channels (combine channels via summation or averaging as needed)
-    audio_7_1_4[:, 8]  = np.clip(audio_22ch[:, 8] + audio_22ch[:, 9], -1.0, 1.0)  # Ltf (Left Top Front)  = Channel 9 + 10
-    audio_7_1_4[:, 9]  = np.clip(audio_22ch[:, 10] + audio_22ch[:, 11], -1.0, 1.0) # Rtf (Right Top Front) = Channel 11 + 12
-    audio_7_1_4[:, 10] = np.clip(audio_22ch[:, 12] + audio_22ch[:, 13], -1.0, 1.0) # Ltr (Left Top Rear) = Channel 13 + 14
-    audio_7_1_4[:, 11] = np.clip(audio_22ch[:, 14] + audio_22ch[:, 15], -1.0, 1.0) # Rtr (Right Top Rear) = Channel 15 + 16
+    audio_7_1_4[:, 8]  = np.clip(audio_22ch[:, 8] + audio_22ch[:, 10], -1.0, 1.0)  # Ltf (Left Top Front)  = Channel 9 + 10
+    audio_7_1_4[:, 9]  = np.clip(audio_22ch[:, 9] + audio_22ch[:, 11], -1.0, 1.0) # Rtf (Right Top Front) = Channel 11 + 12
+    audio_7_1_4[:, 10] = np.clip(audio_22ch[:, 12] + audio_22ch[:, 14], -1.0, 1.0) # Ltr (Left Top Rear) = Channel 13 + 14
+    audio_7_1_4[:, 11] = np.clip(audio_22ch[:, 13] + audio_22ch[:, 15], -1.0, 1.0) # Rtr (Right Top Rear) = Channel 15 + 16
 
     # Normalize if necessary
     max_val = np.max(np.abs(audio_7_1_4))
@@ -76,3 +76,7 @@ if __name__ == "__main__":
 
     # Save the remapped audio
     save_bwf_file(output_file, audio_7_1_4, sr)
+
+    # Check if the projected audio is close to reference per channel
+    for i in range(12):
+        print(f"Channel {i+1} match:", np.allclose(audio_7_1_4[:, i], reference[:, i]))
